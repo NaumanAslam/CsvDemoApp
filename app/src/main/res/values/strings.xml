@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">CsvParserDemoApp</string>
+    <string name="choose_file">Choose the file</string>
+    <string name="browse">Browse</string>
+    <string name="enter_message">Enter your message:</string>
+    <string name="interval">Intervals</string>
+    <string name="time">Time</string>
+    <string name="reandom">Random</string>
+    <string name="send">Send</string>
+    <string name="enter_time">Enter the time in sec</string>
+    <string name="from">From</string>
+    <string name="to">To</string>
+</resources>
