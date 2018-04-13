@@ -1,46 +1,26 @@
-package csvparser.testforbeata.com.csvparserdemoapp;
+package csvparser.testforbeata.com.csvparserdemoapp.Activities;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.ProgressDialog;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.net.Uri;
-import android.os.Environment;
-import android.provider.DocumentsContract;
-import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.os.Bundle;
-import android.telephony.SmsManager;
-import android.telephony.TelephonyManager;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
-
-
-import org.apache.commons.io.IOUtils;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.security.SecureRandom;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Timer;
@@ -48,14 +28,20 @@ import java.util.TimerTask;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import csvparser.testforbeata.com.csvparserdemoapp.R;
+import csvparser.testforbeata.com.csvparserdemoapp.Utils.ParserUtility;
+import csvparser.testforbeata.com.csvparserdemoapp.Utils.SmsSender;
+
 
 public class MainActivity extends Activity implements View.OnClickListener{
+    static  int smsSentCounter=0,totalRunningTimer=0;
     EditText etMessage,etTimer,etRandStartRange,etRandEndRange;
     Button btnBrowse,btnSend;TimerTask timerTask;
     public final int MY_PERMISSIONS_REQUEST_READ_STORAGE = 1,MY_PERMISSIONS_REQUEST_SEND_SMS=2,MY_PERMISSIONS_REQUEST_RECEIVED_FILE=3;
     Intent intent;ArrayList<String[]> _data =new ArrayList();List<String> _columnTitles = new ArrayList<>();
     TextView tvAvailVars,tvDataSize; private Timer timer;
-    RadioGroup radioGroup;
+    RadioGroup radioGroup;      int timerIntLocal=0;
+
     int counter=0, randomTimerInt = 0;Random random;
     ;
     ArrayList<String> _matchedTags = new ArrayList<>();
@@ -108,33 +94,41 @@ public class MainActivity extends Activity implements View.OnClickListener{
                         != PackageManager.PERMISSION_GRANTED) {
                     // Permission is not granted
                     ActivityCompat.requestPermissions(MainActivity.this,
-                            new String[]{Manifest.permission.SEND_SMS,Manifest.permission.READ_SMS},
+                            new String[]{Manifest.permission.SEND_SMS,Manifest.permission.READ_SMS,Manifest.permission.READ_PHONE_STATE},
                             MY_PERMISSIONS_REQUEST_SEND_SMS);
                 }
                 else {
-                    if (validatedSms()){
-                        counter = 0;
-                        Log.e("Validated","yes");
-                        if (radioGroup.getCheckedRadioButtonId()==R.id.by_timer){
-                            stop();
-                            prepareAndSendSms();
-                            // startTimer(false);
-                        }
-                        else{
-                            Log.e("RandomSelected",randomTimerInt+"");
-                            stop();
-                            startTimer(true);
-                        }
-                    }
-                    else {
-                        Log.e("Validated","no");
 
-                    }
-
+                    manageSMSservice();
                     // Permission has already been granted
                 }
                 break;
             }
+        }
+    }
+    private void manageSMSservice(){
+        if (validatedSms()&&_data.size()>0){
+            counter = 0;
+            Log.e("Validated","yes");
+            if (radioGroup.getCheckedRadioButtonId()==R.id.by_timer){
+                stop();
+                prepareAndSendSms(false);
+                // startTimer(false);
+            }
+            else{
+                Log.e("RandomSelected",randomTimerInt+"");
+                stop();
+                prepareAndSendSms(true);
+                //startTimer(true);
+            }
+        }
+        else {
+            if (_data.size()==0) {
+                Toast.makeText(getApplicationContext(), "CSV not loaded",Toast.LENGTH_SHORT).show();
+            }
+
+            Log.e("Validated","no");
+
         }
     }
     @Override
@@ -149,9 +143,8 @@ public class MainActivity extends Activity implements View.OnClickListener{
                     openFileExplorer();
 
                 } else {
+                    Toast.makeText(getApplicationContext(),"Sorry! you didn't allow :(",Toast.LENGTH_SHORT).show();
 
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
                 }
                 return;
             }
@@ -163,16 +156,14 @@ public class MainActivity extends Activity implements View.OnClickListener{
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
 
-                    validatedSms();
+                    manageSMSservice();
                 } else {
+                    Toast.makeText(getApplicationContext(),"Sorry! you didn't allow :(",Toast.LENGTH_SHORT).show();
 
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
                 }
                 return;
             }
-            // other 'case' lines to check for other
-            // permissions this app might request.
+
         }
     }
     Boolean validatedSms(){
@@ -181,11 +172,21 @@ public class MainActivity extends Activity implements View.OnClickListener{
 
                 return true;
             }
+            else {
+                etTimer.setError("Required");
+            }
         }
         else {
             if (!etRandStartRange.getText().toString().equals("")&&!etRandEndRange.getText().toString().equals("")){
 
                 return true;
+            }
+            else {
+                if (etRandStartRange.getText().toString().equals(""))
+                    etRandStartRange.setError("Required");
+                if (etRandEndRange.getText().toString().equals(""))
+                    etRandEndRange.setError("Required");
+
             }
 
         }
@@ -202,85 +203,22 @@ public class MainActivity extends Activity implements View.OnClickListener{
                 if(resultCode==RESULT_OK){
 
                     Uri PathHolder = data.getData();
-                    Toast.makeText(MainActivity.this, PathHolder.toString() , Toast.LENGTH_LONG).show();
+                    //Toast.makeText(MainActivity.this, PathHolder.toString() , Toast.LENGTH_LONG).show();
 
                     Uri uri = data.getData();
+                    _columnTitles= ParserUtility.parseCSVForColumnTitles(uri,MainActivity.this);
+                    _data= ParserUtility.parseCSVForData(uri,MainActivity.this);
 
-                    // String pathToFile = getFilePathFromURI(MainActivity.this,uri);
-
-                    csvParser(uri);
+                    String strAvailVars="";
+                    for (int i =0 ; i<_columnTitles.size();i++){
+                        strAvailVars=strAvailVars+"{"+_columnTitles.get(i)+"} ; ";
+                    }
+                    tvAvailVars.setText("Available variables "+strAvailVars);
+                    tvDataSize.setText("Imported contacts "+(_data.size()>0 ? _data.size()-1:_data.size()));
                 }
                 break;
 
         }
-    }
-    public static String getFilePathFromURI(Context context, Uri contentUri) {
-        //copy file and send new file path
-        String fileName = getFileName(contentUri);
-        if (!TextUtils.isEmpty(fileName)) {
-            File copyFile = new File(Environment.getExternalStorageDirectory()+"/" + File.separator + fileName);
-            copy(context, contentUri, copyFile);
-            return copyFile.getAbsolutePath();
-        }
-        return null;
-    }
-
-    public static String getFileName(Uri uri) {
-        if (uri == null) return null;
-        String fileName = null;
-        String path = uri.getPath();
-        int cut = path.lastIndexOf('/');
-        if (cut != -1) {
-            fileName = path.substring(cut + 1);
-        }
-        return fileName;
-    }
-
-    public static void copy(Context context, Uri srcUri, File dstFile) {
-        try {
-            InputStream inputStream = context.getContentResolver().openInputStream(srcUri);
-            if (inputStream == null) return;
-            OutputStream outputStream = new FileOutputStream(dstFile);
-            IOUtils.copy(inputStream, outputStream);
-            inputStream.close();
-            outputStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    private void csvParser(Uri path){
-        String line = "";
-        String cvsSplitBy = ",";
-        try {
-
-            InputStream inputStream = getContentResolver().openInputStream(path);
-
-            BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
-
-            if (br!=null){
-                String headers = br.readLine();
-                String[] headerArray = headers.split(cvsSplitBy);
-                _columnTitles = Arrays.asList(headerArray);
-                String a = "";
-            }
-            while ((line = br.readLine()) != null) {
-
-                // use comma as separator
-                String[] columns = line.split(cvsSplitBy);
-                _data.add(columns);
-                //System.out.println("Country [code= " + columns[4] + " , name=" + columns[5] + "]");
-
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        String strAvailVars="";
-        for (int i =0 ; i<_columnTitles.size();i++){
-            strAvailVars=strAvailVars+"{"+_columnTitles.get(i)+"} ; ";
-        }
-        tvAvailVars.setText("Available variables "+strAvailVars);
-        tvDataSize.setText("Imported contacts "+_data.size());
     }
 
     private  int generateRandom(){
@@ -290,9 +228,13 @@ public class MainActivity extends Activity implements View.OnClickListener{
         return randomTimerInt = random.nextInt((max-min)+1)+min;
 
     }
-    private void startTimer(final Boolean isRandomSelected) {
-
+    private void startTimer(final Boolean isRandomSelected, final String message) {
+        final String timerStrLocal = etTimer.getText().toString();
+        if (!timerStrLocal.equals("")) {
+           timerIntLocal = Integer.parseInt(etTimer.getText().toString());
+        }
         counter = 0;
+
         if (isRandomSelected) {
             randomTimerInt = generateRandom();
         }
@@ -304,18 +246,25 @@ public class MainActivity extends Activity implements View.OnClickListener{
                     @Override
                     public void run() {
                         counter++;
-
+                        totalRunningTimer++;
+                        if (totalRunningTimer/60==5){
+                            notifyThis("CsvDemo","Total "+smsSentCounter+ " SMS sent!");
+                            totalRunningTimer=0;
+                        }
                         if (isRandomSelected) {
                             if (counter == randomTimerInt) {
                                 Log.e("SmsGoing", "Work " + counter);
+                                SmsSender.sendSMS(message,MainActivity.this);
+                                ++smsSentCounter;
                                 counter = 0;
                                 randomTimerInt = generateRandom();
                             }
                         } else {
-                            if (counter == Integer.parseInt(etTimer.getText().toString())) {
+                            if (counter ==timerIntLocal ) {
                                 Log.e("SmsGoing", "Work " + counter);
-                                prepareAndSendSms();
-                                //sendSMS("+923345545975", "Hello");
+                                SmsSender. sendSMS(message,MainActivity.this);
+                                ++smsSentCounter;
+
                                 counter = 0;
                             }
                         }
@@ -329,20 +278,27 @@ public class MainActivity extends Activity implements View.OnClickListener{
 
         start();
     }
-    private  void prepareAndSendSms(){
-
+    private  void prepareAndSendSms(Boolean isRandomSelected){
+        smsSentCounter=0;
         String messageBody = etMessage.getText().toString();
         final Pattern pattern = Pattern.compile("\\{(.+?)\\}");
         final Matcher matcher = pattern.matcher(messageBody);
+        _matchedTags.clear();
         while (matcher.find()){
             _matchedTags.add(matcher.group(1));
         }
+        HashSet hs = new HashSet();
+        hs.addAll(_matchedTags);
+        _matchedTags.clear();
+        _matchedTags.addAll(hs);
+
         for (int i=0;i<_matchedTags.size();i++){
 
             messageBody=messageBody.replace("{"+_matchedTags.get(i)+"}",fetchTextAgainstTag(_matchedTags.get(i)));
         }
-
-        Log.e("Prepared",_matchedTags.size()+"s");
+        Toast.makeText(getApplicationContext(),"Starting sms service",Toast.LENGTH_SHORT).show();
+        Log.e("Prepared",_matchedTags.size()+"");
+        startTimer(isRandomSelected,messageBody);
 
     }
     String fetchTextAgainstTag(String tag){
@@ -351,9 +307,12 @@ public class MainActivity extends Activity implements View.OnClickListener{
             if (_columnTitles.get(i).equals(tag))
                 columnPosInt = i;
         }
-        String[] _tempDataInt = _data.get(0);//we can add a random method here to get random rows everytime
-        return  _tempDataInt[columnPosInt];
+        if (_data.size()>1) {
+            String[] _tempDataInt = _data.get(1);//we can add a random method here to get random rows everytime
+            return  _tempDataInt[columnPosInt];
 
+        }
+        return "";
     }
     public void start() {
         if(timer != null) {
@@ -377,5 +336,20 @@ public class MainActivity extends Activity implements View.OnClickListener{
     protected void onDestroy() {
         super.onDestroy();
         stop();
+    }
+
+    public void notifyThis(String title, String message) {
+        NotificationCompat.Builder b = new NotificationCompat.Builder(MainActivity.this,"1");
+        b.setAutoCancel(true)
+                .setDefaults(NotificationCompat.DEFAULT_ALL)
+                .setWhen(System.currentTimeMillis())
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setTicker(message)
+                .setContentTitle(title)
+                .setContentText(message)
+                .setContentInfo("INFO");
+
+        NotificationManager nm = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
+        nm.notify(1, b.build());
     }
 }

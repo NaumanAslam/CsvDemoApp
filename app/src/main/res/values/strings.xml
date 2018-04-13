@@ -10,4 +10,10 @@
     <string name="enter_time">Enter the time in sec</string>
     <string name="from">From</string>
     <string name="to">To</string>
+    <string name="timer_hint">Enter the time in sec</string>
+    <string name="from_hint">From</string>
+    <string name="to_hint">To</string>
+
+
+
 </resources>

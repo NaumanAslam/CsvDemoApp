@@ -9,7 +9,7 @@
     android:focusable="true"
     android:background="@color/layoutbg"
     android:focusableInTouchMode="true"
-    tools:context="csvparser.testforbeata.com.csvparserdemoapp.MainActivity">
+    tools:context="csvparser.testforbeata.com.csvparserdemoapp.Activities.MainActivity">
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -49,19 +49,19 @@
                 android:layout_below="@+id/ll_top"
                 android:layout_marginTop="70dp">
 
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/browse"
-                        android:textStyle="bold"
-                        android:textSize="16sp"
-                        android:id="@+id/tv_datassize"/>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:id="@+id/tv_datassize"/>
 
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/browse"
+                    android:text=""
                     android:textStyle="bold"
                     android:textSize="16sp"
                     android:id="@+id/tv_avai_vars"/>
@@ -78,7 +78,7 @@
                     android:backgroundTint="@color/colorAccent"
                     android:layout_marginTop="20dp"
                     android:id="@+id/et_message"
-                    android:text="this is me {First Name}, actually I work in the {User Name} . But this is my new {First Name} and this is the final {Display Name}"
+                    android:text=""
                     />
                 <TextView
                     android:layout_width="match_parent"
@@ -129,7 +129,8 @@
                             android:backgroundTint="@color/colorAccent"
                             android:inputType="number"
                             android:id="@+id/et_time"
-
+                            android:hint="@string/enter_time"
+                            android:textColorHint="@android:color/white"
                             />
                         <RelativeLayout
                             android:layout_width="match_parent"
@@ -142,6 +143,8 @@
                                 android:layout_height="40dp"
                                 android:backgroundTint="@color/colorAccent"
                                 android:inputType="number"
+                                android:hint="@string/from_hint"
+                                android:textColorHint="@android:color/white"
                                 android:id="@+id/et_rand_start"
 
                                 />
@@ -151,6 +154,8 @@
                                 android:backgroundTint="@color/colorAccent"
                                 android:layout_alignParentRight="true"
                                 android:inputType="number"
+                                android:hint="@string/to_hint"
+                                android:textColorHint="@android:color/white"
                                 android:id="@+id/et_rand_end"
 
                                 />
