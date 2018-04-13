@@ -348,7 +348,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
                 .setContentTitle(title)
                 .setContentText(message)
                 .setContentInfo("INFO");
-
+  
         NotificationManager nm = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
         nm.notify(1, b.build());
     }
