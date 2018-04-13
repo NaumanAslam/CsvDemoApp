@@ -49,13 +49,15 @@
                 android:layout_below="@+id/ll_top"
                 android:layout_marginTop="70dp">
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/browse"
-                    android:textStyle="bold"
-                    android:textSize="16sp"
-                    android:id="@+id/tv_contacssize"/>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/browse"
+                        android:textStyle="bold"
+                        android:textSize="16sp"
+                        android:id="@+id/tv_datassize"/>
+
+
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -76,7 +78,8 @@
                     android:backgroundTint="@color/colorAccent"
                     android:layout_marginTop="20dp"
                     android:id="@+id/et_message"
-                   />
+                    android:text="this is me {First Name}, actually I work in the {User Name} . But this is my new {First Name} and this is the final {Display Name}"
+                    />
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -93,11 +96,14 @@
                         android:layout_weight=".4"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
+                        android:id="@+id/radio_group"
                         android:layout_marginTop="10dp">
                         <RadioButton
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/time"
+                            android:checked="true"
+                            android:id="@+id/by_timer"
                             android:textColor="@android:color/black"
                             android:buttonTint="@color/colorAccent"
                             android:textStyle="bold"/>
@@ -106,6 +112,7 @@
                             android:layout_height="wrap_content"
                             android:text="@string/reandom"
                             android:textStyle="bold"
+                            android:id="@+id/by_rand"
                             android:textColor="@android:color/black"
                             android:buttonTint="@color/colorAccent"
 
@@ -120,7 +127,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="40dp"
                             android:backgroundTint="@color/colorAccent"
-                          android:inputType="number"
+                            android:inputType="number"
                             android:id="@+id/et_time"
 
                             />
