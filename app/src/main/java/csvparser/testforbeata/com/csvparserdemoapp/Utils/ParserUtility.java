@@ -18,8 +18,7 @@ import java.util.List;
 public class ParserUtility {
 
     public static List<String> parseCSVForColumnTitles(Uri path, Context context){
-        String line = "";
-        String cvsSplitBy = ",";
+         String cvsSplitBy = ",";
         List<String> _dataToReply = new ArrayList<>();
         try {
 
@@ -31,8 +30,7 @@ public class ParserUtility {
                 String headers = br.readLine();
                 String[] headerArray = headers.split(cvsSplitBy);
                 _dataToReply = Arrays.asList(headerArray);
-                String a = "";
-            }
+             }
 
 
         } catch (IOException e) {
@@ -53,10 +51,8 @@ public class ParserUtility {
 
             while ((line = br.readLine()) != null) {
 
-                // use comma as separator
-                String[] columns = line.split(cvsSplitBy);
+                 String[] columns = line.split(cvsSplitBy);
                 _dataToReply.add(columns);
-                //System.out.println("Country [code= " + columns[4] + " , name=" + columns[5] + "]");
 
             }
         } catch (IOException e) {

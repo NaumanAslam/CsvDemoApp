@@ -37,13 +37,15 @@ public class MainActivity extends Activity implements View.OnClickListener{
     static  int smsSentCounter=0,totalRunningTimer=0;
     EditText etMessage,etTimer,etRandStartRange,etRandEndRange;
     Button btnBrowse,btnSend;TimerTask timerTask;
+    int phoneNumberPositionInCsv=0;
     public final int MY_PERMISSIONS_REQUEST_READ_STORAGE = 1,MY_PERMISSIONS_REQUEST_SEND_SMS=2,MY_PERMISSIONS_REQUEST_RECEIVED_FILE=3;
     Intent intent;ArrayList<String[]> _data =new ArrayList();List<String> _columnTitles = new ArrayList<>();
     TextView tvAvailVars,tvDataSize; private Timer timer;
     RadioGroup radioGroup;      int timerIntLocal=0;
-
+    Boolean doesPhoneNumExists=false;
     int counter=0, randomTimerInt = 0;Random random;
     ;
+    String numberToSendSms="";
     ArrayList<String> _matchedTags = new ArrayList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -212,6 +214,10 @@ public class MainActivity extends Activity implements View.OnClickListener{
                     String strAvailVars="";
                     for (int i =0 ; i<_columnTitles.size();i++){
                         strAvailVars=strAvailVars+"{"+_columnTitles.get(i)+"} ; ";
+                        if (_columnTitles.get(i).contains("Phone Number")) {
+                            phoneNumberPositionInCsv = i;
+                            doesPhoneNumExists=true;
+                        }
                     }
                     tvAvailVars.setText("Available variables "+strAvailVars);
                     tvDataSize.setText("Imported contacts "+(_data.size()>0 ? _data.size()-1:_data.size()));
@@ -247,14 +253,14 @@ public class MainActivity extends Activity implements View.OnClickListener{
                     public void run() {
                         counter++;
                         totalRunningTimer++;
-                        if (totalRunningTimer/60==5){
+                        if (totalRunningTimer/60==1){
                             notifyThis("CsvDemo","Total "+smsSentCounter+ " SMS sent!");
                             totalRunningTimer=0;
                         }
                         if (isRandomSelected) {
                             if (counter == randomTimerInt) {
                                 Log.e("SmsGoing", "Work " + counter);
-                                SmsSender.sendSMS(message,MainActivity.this);
+                                SmsSender.sendSMS(message,MainActivity.this,numberToSendSms);
                                 ++smsSentCounter;
                                 counter = 0;
                                 randomTimerInt = generateRandom();
@@ -262,7 +268,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
                         } else {
                             if (counter ==timerIntLocal ) {
                                 Log.e("SmsGoing", "Work " + counter);
-                                SmsSender. sendSMS(message,MainActivity.this);
+                                SmsSender. sendSMS(message,MainActivity.this,numberToSendSms);
                                 ++smsSentCounter;
 
                                 counter = 0;
@@ -296,9 +302,19 @@ public class MainActivity extends Activity implements View.OnClickListener{
 
             messageBody=messageBody.replace("{"+_matchedTags.get(i)+"}",fetchTextAgainstTag(_matchedTags.get(i)));
         }
-        Toast.makeText(getApplicationContext(),"Starting sms service",Toast.LENGTH_SHORT).show();
-        Log.e("Prepared",_matchedTags.size()+"");
-        startTimer(isRandomSelected,messageBody);
+        if (doesPhoneNumExists) {
+            String[] _tempDataForNumber = _data.get(1);
+            numberToSendSms = _tempDataForNumber[phoneNumberPositionInCsv];
+            Toast.makeText(getApplicationContext(),"Starting sms service",Toast.LENGTH_SHORT).show();
+            Log.e("Prepared",_matchedTags.size()+"");
+            startTimer(isRandomSelected,messageBody);
+        }
+        else
+        {
+            Toast.makeText(getApplicationContext(),"No number exists!",Toast.LENGTH_SHORT).show();
+
+        }
+
 
     }
     String fetchTextAgainstTag(String tag){
@@ -348,7 +364,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
                 .setContentTitle(title)
                 .setContentText(message)
                 .setContentInfo("INFO");
-  
+
         NotificationManager nm = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
         nm.notify(1, b.build());
     }

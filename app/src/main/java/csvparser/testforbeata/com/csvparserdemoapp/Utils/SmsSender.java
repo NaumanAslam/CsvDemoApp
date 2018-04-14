@@ -20,18 +20,15 @@ import static android.content.Context.TELEPHONY_SERVICE;
 
 public class SmsSender {
 
-    public static void sendSMS(String message, Context context) {
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE)
-                == PackageManager.PERMISSION_GRANTED) {
-            TelephonyManager tm = (TelephonyManager) context.getSystemService(TELEPHONY_SERVICE);
-            String number = tm.getLine1Number();
+    public static void sendSMS(String message, Context context,String number) {
+
+          //  TelephonyManager tm = (TelephonyManager) context.getSystemService(TELEPHONY_SERVICE);
+           // String number = tm.getLine1Number();
             SmsManager sms = SmsManager.getDefault();
             ArrayList<String> parts = sms.divideMessage(message);
 
             sms.sendMultipartTextMessage(number, null, parts, null, null);
-        }
-        else {
-            Toast.makeText(context,"Missing permissions",Toast.LENGTH_SHORT).show();
-        }
+
+        
     }
 }
