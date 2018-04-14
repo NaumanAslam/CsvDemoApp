@@ -214,7 +214,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
                     String strAvailVars="";
                     for (int i =0 ; i<_columnTitles.size();i++){
                         strAvailVars=strAvailVars+"{"+_columnTitles.get(i)+"} ; ";
-                        if (_columnTitles.get(i).contains("Phone Number")) {
+                        if (_columnTitles.get(i).contains("Phone Number")||_columnTitles.get(i).contains("phone number")) {
                             phoneNumberPositionInCsv = i;
                             doesPhoneNumExists=true;
                         }

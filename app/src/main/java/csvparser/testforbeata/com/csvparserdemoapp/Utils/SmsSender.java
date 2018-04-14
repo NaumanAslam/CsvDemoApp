@@ -29,6 +29,6 @@ public class SmsSender {
 
             sms.sendMultipartTextMessage(number, null, parts, null, null);
 
-        
+
     }
 }
